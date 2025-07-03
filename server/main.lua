@@ -1,4 +1,6 @@
 cooldowns = {}
+activeCaptures = {}
+currentCaptures = {}
 
 function IsOnCooldown(job)
     if cooldowns[job] then
@@ -16,12 +18,27 @@ function SetCooldown(job)
     cooldowns[job] = os.time() + 600 
 end
 
+function VerifyCapture(source, job, place)
+    if not currentCaptures[source] then return false end
+    if job and currentCaptures[source].job ~= job then return false end
+    if place and currentCaptures[source].place ~= place then return false end
+    return true
+end
+
 lib.callback.register("nn_caption:jobexist", function(source, job)
     if DoesJobExist(job) then
-        return
+        return true
     else
         debugprint("^2[ERROR] ^7NN Caption: ^1" .. job .. " ^7 Frakció nem létezik Kérlek nézd meg a config.lua fájlt!^0")
+        return false
     end
+end)
+
+lib.callback.register("nn_caption:getTerritoryCoords", function(source, job)
+    if NN.fractions[job] and NN.fractions[job].coords then
+        return NN.fractions[job].coords
+    end
+    return nil
 end)
 
 lib.callback.register("nn_caption:getjobname", function(source, job)
@@ -47,6 +64,12 @@ RegisterNetEvent("nn_caption:capture", function(job, place)
     local source = source
     local playerName = GetPlayerName(source)
     
+    currentCaptures[source] = {
+        job = job,
+        place = place,
+        startTime = os.time()
+    }
+
     if job then
         if DoesJobExist(job) then
             if IsOnCooldown(job) then
@@ -67,8 +90,12 @@ RegisterNetEvent("nn_caption:capture", function(job, place)
             local jobname = MySQL.single.await('SELECT `label` FROM `jobs` WHERE `name` = ? LIMIT 1', {
                 job
             })
-            local minmember = NN.fractions[whocaptured(job)].minmember
-            local frakciotagok = ESX.GetExtendedPlayers('job', whocaptured(job))
+            local captured = whocaptured(job)
+            if not NN.fractions[captured] then 
+                return print("^3[ERROR] ^2 NEM LÉTEZIK A FRAKCIÓ KÉRLEK IRD BELE A CONFIG.LUA BA!")
+            end
+            local minmember = NN.fractions[captured].minmember
+            local frakciotagok = ESX.GetExtendedPlayers('job', captured)
             if not xPlayer then return end
             
             LogCaptureAttempt(job, playerName, source)
@@ -148,6 +175,13 @@ RegisterNetEvent("nn_caption:donecapture", function(job, place)
     local source = source
     local playerName = GetPlayerName(source)
     
+    if not VerifyCapture(source, job, place) then
+        debugprint("^2[WARNING] ^7NN Caption: Invalid capture attempt from "..playerName.." (ID: "..source..")")
+        return
+    end
+    
+    currentCaptures[source] = nil
+    
     if job then
         if DoesJobExist(job) then
             local xPlayer = ESX.GetPlayerFromId(source)
@@ -155,6 +189,21 @@ RegisterNetEvent("nn_caption:donecapture", function(job, place)
             local jobname = MySQL.single.await('SELECT `label` FROM `jobs` WHERE `name` = ? LIMIT 1', {job})
             if not jobname then return end
             
+            if activeCaptures[source] and activeCaptures[source][job] then
+                local lastCapture = activeCaptures[source][job]
+                if os.time() - lastCapture < 60 then
+                    return lib.notify(source, {
+                        title = "NN Caption",
+                        description = "Nem tudod újra elfoglalni ugyanazt a területet ilyen gyorsan!",
+                        type = "error"
+                    })
+                end
+            end
+            
+            activeCaptures[source] = activeCaptures[source] or {}
+            activeCaptures[source][job] = os.time()
+            
+            SetCooldown(job)
             if job == xPlayer.job.name then
                 MySQL.update.await('UPDATE nn_caption SET `capuredby` = ?, `capuredat` = ? WHERE `job` = ?', {
                     "N/A",
@@ -167,7 +216,6 @@ RegisterNetEvent("nn_caption:donecapture", function(job, place)
                     os.date('%Y-%m-%d %H:%M:%S'),
                     job
                 })
-                SetCooldown(job)
                 
                 LogTerritoryCapture(xPlayer.job.name, job, playerName, source)
             end
@@ -193,9 +241,23 @@ RegisterNetEvent("nn_caption:donecapture", function(job, place)
         local xPlayer = ESX.GetPlayerFromId(source)
         if not xPlayer then return end
         if place then
+            if activeCaptures[source] and activeCaptures[source][place] then
+                local lastCapture = activeCaptures[source][place]
+                if os.time() - lastCapture < 60 then 
+                    return lib.notify(source, {
+                        title = "NN Caption",
+                        description = "Nem tudod újra elfoglalni ugyanazt a helyet ilyen gyorsan!",
+                        type = "error"
+                    })
+                end
+            end
+            
+            activeCaptures[source] = activeCaptures[source] or {}
+            activeCaptures[source][place] = os.time()
+            
+            SetCooldown(place)
             local payout = NN.places[place].payout or 0
             xPlayer.addMoney(payout)
-            SetCooldown(place)
             
             LogPlaceCapture(place, playerName, source, payout)
             
@@ -212,6 +274,12 @@ end)
 
 AddEventHandler("onResourceStart", function(resourcename)
     if resourcename == GetCurrentResourceName() then
+        if GetCurrentResourceName() ~= "nn_caption" then
+            print("^1[FIGYELMEZTETÉS] ^7NE ÍRD ÁT A SCRIPT NEVÉT! A script nevének 'nn_caption'-nek kell lennie!^0")
+            print("^1[FIGYELMEZTETÉS] ^7Jelenlegi script név: '"..resourcename.."'^0")
+            return
+        end
+
         Sendwebhook(
             "Script Indítása",
             "NN Caption script sikeresen elindult!",

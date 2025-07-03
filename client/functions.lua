@@ -4,6 +4,13 @@ local hex = nil
 local territoryBlips = {}
 local placeBlips = {}
 E = 38
+
+function debugprint(msg)
+    if NN.debug then
+        print(msg)
+    end
+end
+
 function HexToBlipColor(hex)
     if not hex then return 3 end 
     
@@ -63,7 +70,7 @@ function PlaceMarker(coords, color, job, place)
     local rgbColor = HexToRGB(color)
     local hexColor = RGBToHex(rgbColor)
     if job then 
-        local capure = lib.callback.await("nn_caption:whocaptured", false, job)
+        local capure = lib.callback.await("nn_caption:whocaptured", 100, job)
         local jobname = lib.callback.await("nn_caption:getjobname", 100, capure)
         while not jobname do
             Wait(100)
@@ -91,16 +98,19 @@ function PlaceMarker(coords, color, job, place)
             distance = 20,
             nearby = function(self)
                 if self.currentDistance < 2.0 then
-                    lib.showTextUI("[E] - Foglalás - ".. jobname, {
-                        position = "right-center",
-                        icon = "fa-solid fa-flag",
-                        iconColor = "white",
-                        style = {
-                            backgroundColor = hexColor .. "B3",
-                            color = "white",
-                            fontSize = "20px"
-                        }
-                    })
+                    local isOpen = lib.isTextUIOpen()
+                    if not isOpen then
+                        lib.showTextUI("[E] - Foglalás - ".. jobname, {
+                            position = "right-center",
+                            icon = "fa-solid fa-flag",
+                            iconColor = "white",
+                            style = {
+                                backgroundColor = hexColor .. "B3",
+                                color = "white",
+                                fontSize = "20px"
+                            }
+                        })
+                    end
                     if IsControlJustReleased(0, E) then
                         Capture(job, false)
                         lib.hideTextUI()
@@ -146,16 +156,19 @@ function PlaceMarker(coords, color, job, place)
             distance = 20,
             nearby = function(self)
                 if self.currentDistance < 2.0 then
-                    lib.showTextUI("[E] - Foglalás - " .. place, {
-                        position = "right-center",
-                        icon = "fa-solid fa-flag",
-                        iconColor = "white",
-                        style = {
-                            backgroundColor = hexColor .. "B3",
-                            color = "white",
-                            fontSize = "20px"
-                        }
-                    })
+                    local isOpen = lib.isTextUIOpen()
+                    if not isOpen then
+                        lib.showTextUI("[E] - Foglalás - ".. place, {
+                            position = "right-center",
+                            icon = "fa-solid fa-flag",
+                            iconColor = "white",
+                            style = {
+                                backgroundColor = hexColor .. "B3",
+                                color = "white",
+                                fontSize = "20px"
+                            }
+                        })
+                    end
                     if IsControlJustReleased(0, E) then
                         Capture(false, place)
                         lib.hideTextUI()
@@ -237,9 +250,9 @@ end
 function UpdateBlipName(job, originalName, capturedBy, placename)
     if job then
         if not territoryBlips[job] or not DoesBlipExist(territoryBlips[job].main) then
-            local coords = lib.callback.await('nn_caption:getTerritoryCoords', false, job)
+            local coords = lib.callback.await('nn_caption:getTerritoryCoords', 100, job)
             if coords then
-                PlaceBlip(coords, Config.Territories[job].color, job)
+                PlaceBlip(coords, NN.fractions[job].color, job)
             else
                 return
             end
@@ -247,10 +260,10 @@ function UpdateBlipName(job, originalName, capturedBy, placename)
 
         local displayName
         if capturedBy and capturedBy ~= "N/A" then
-            local capturerName = lib.callback.await("nn_caption:getjobname", false, capturedBy)
+            local capturerName = lib.callback.await("nn_caption:getjobname", 100, capturedBy)
             while not capturerName do
                 Wait(100)
-                capturerName = lib.callback.await("nn_caption:getjobname", false, capturedBy)
+                capturerName = lib.callback.await("nn_caption:getjobname", 100, capturedBy)
             end
             
             if capturerName == originalName then
@@ -272,7 +285,7 @@ function UpdateBlipName(job, originalName, capturedBy, placename)
 
     elseif placename then
         if not placeBlips[placename] or not DoesBlipExist(placeBlips[placename].main) then
-            local coords = lib.callback.await('nn_caption:getPlaceCoords', false, placename)
+            local coords = lib.callback.await('nn_caption:getPlaceCoords', 100, placename)
             if coords then
                 PlaceBlip(coords, Config.Places[placename].color, nil, placename)
             else
@@ -282,10 +295,10 @@ function UpdateBlipName(job, originalName, capturedBy, placename)
 
         local displayName = placename
         if capturedBy and capturedBy ~= "N/A" then
-            local capturerName = lib.callback.await("nn_caption:getjobname", false, capturedBy)
+            local capturerName = lib.callback.await("nn_caption:getjobname", 100, capturedBy)
             while not capturerName do
                 Wait(100)
-                capturerName = lib.callback.await("nn_caption:getjobname", false, capturedBy)
+                capturerName = lib.callback.await("nn_caption:getjobname", 100, capturedBy)
             end
             
             if capturerName ~= placename then

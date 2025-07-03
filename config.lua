@@ -19,17 +19,17 @@ NN.places = {
 NN.fractions = {
     ["unemployed"] = {
         coords = vec3(-75.1534, -819.3939, 326.1751),
-        minmember = 3, -- hány ember kell a foglaláshoz?
+        minmember = 0, -- hány ember kell a foglaláshoz?
         color = "#00FF00",
         payout = math.random(1500, 5000), -- payout = false vagy math.random(1500, 5000)
     },
-    ["skibidimaffa"] = {
+    ["police"] = {
         coords = vec3(3518.7405, 3782.7686, 29.9242),
-        minmember = 5,
+        minmember = 0,
         color = "#c7c68e",
         payout = math.random(1500, 5000),
     },
-    ["police"] = {
+    ["ambulance"] = {
         coords = vec3(3203.4299, 3714.2976, 148.8020),
         minmember = 1,
         color = "#2a82cc",
