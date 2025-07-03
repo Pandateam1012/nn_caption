@@ -1,12 +1,3 @@
-RegisterCommand("PlaceMarker", function()
-    local coords = GetEntityCoords(PlayerPedId())
-    local color = "#00FF00"  -- Green color in hex
-    local sprite = 22
-
-    PlaceMarker(coords, color, "unemployed")    
-    PlaceBlip(coords, color, "unemployed")
-end)
-
 CreateThread(function()
     for job, data in pairs(NN.fractions) do
         if data.coords then
