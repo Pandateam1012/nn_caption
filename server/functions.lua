@@ -27,13 +27,14 @@ function DoesJobExist(job)
 end
 
 function whocaptured(job)
-    local row = MySQL.single.await('SELECT `capuredby` FROM `nn_caption` WHERE `job` = ? LIMIT 1', {
+    local row = MySQL.scalar.await('SELECT `capuredby` FROM `nn_caption` WHERE `job` = ? LIMIT 1', {
         job
     })
-    if row.capuredby == "N/A" then
+    if not row then return print("^1[ERROR] ^3 NEM TALÁLTUK MEG AZ nn_caption TABLET AZ SQL BE! q")end
+    if row == "N/A" then
         return job
     end
-    return row and row.capuredby or nil
+    return row or job
 end
 
 function debugprint(msg)
