@@ -3,7 +3,7 @@ game "gta5"
 lua54 "yes"
 author "NoName Scripts"
 description "NoName Caption"
-
+version "1.0.0"
 client_script "client/*.lua"
 server_script "server/*.lua"
 server_script '@oxmysql/lib/MySQL.lua'

@@ -1,3 +1,5 @@
+lib.checkDependency('ox_lib', '3.30.10')
+
 cooldowns = {}
 activeCaptures = {}
 currentCaptures = {}
@@ -14,7 +16,7 @@ function IsOnCooldown(job)
     return false
 end
 
-function SetCooldown(job)
+function SetCooldown(job)   
     cooldowns[job] = os.time() + 600 
 end
 

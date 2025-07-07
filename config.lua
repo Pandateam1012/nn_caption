@@ -1,6 +1,6 @@
 NN = {}
 
-NN.debug = false -- debug mód bekapcsolása, ha true akkor a konzolra ki ír mindent
+NN.debug = true -- debug mód bekapcsolása, ha true akkor a konzolra ki ír mindent
 
 -- a 3* 60 * 1000 az 3 perc (ms)
 NN.timetocapture = 3* 60 * 1000 -- idő amíg elfoglalja a területet
@@ -11,6 +11,14 @@ NN.places = {
         blip = {
             sprite = 499,
             color = "#2acc89",
+        },
+        payout = math.random(1000, 3000), -- payout = false vagy math.random(1000, 3000)
+    },
+    ["Maze Bank"] = {
+        coords = vec3(3452.2620, 3614.4138, 49.9546),
+        blip = {
+            sprite = 3,
+            color = "#762ACC",
         },
         payout = math.random(1000, 3000), -- payout = false vagy math.random(1000, 3000)
     },

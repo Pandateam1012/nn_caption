@@ -30,7 +30,6 @@ function whocaptured(job)
     local row = MySQL.scalar.await('SELECT `capuredby` FROM `nn_caption` WHERE `job` = ? LIMIT 1', {
         job
     })
-    if not row then return print("^1[ERROR] ^3 NEM TALÁLTUK MEG AZ nn_caption TABLET AZ SQL BE! q")end
     if row == "N/A" then
         return job
     end

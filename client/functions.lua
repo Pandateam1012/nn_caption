@@ -4,6 +4,7 @@ local hex = nil
 local territoryBlips = {}
 local placeBlips = {}
 E = 38
+local captureing = false
 
 function debugprint(msg)
     if NN.debug then
@@ -113,6 +114,7 @@ function PlaceMarker(coords, color, job, place)
                     end
                     if IsControlJustReleased(0, E) then
                         Capture(job, false)
+                        captureing = not captureing
                         lib.hideTextUI()
                     end
                 else
@@ -128,6 +130,7 @@ function PlaceMarker(coords, color, job, place)
             end,
             onExit = function(self)
                 NN.CancelProgressbar()
+                captureing = false
             end,
             onEnter = function()
 
@@ -193,7 +196,9 @@ function PlaceMarker(coords, color, job, place)
 end
 
 function Capture(job, place)
+    if captureing then
     TriggerServerEvent("nn_caption:capture", job, place)
+    end
 end
 
 
@@ -232,7 +237,7 @@ function PlaceBlip(coords, color, job, placename)
                 main = AddBlipForCoord(coords),
                 radius = AddBlipForRadius(coords, 100.0)
             }
-            SetBlipSprite(placeBlips[placename].main, 499)
+            SetBlipSprite(placeBlips[placename].main, NN.places[placename].blip.sprite or 164)
             SetBlipColour(placeBlips[placename].main, HexToBlipColor(color))
             SetBlipScale(placeBlips[placename].main, 0.8)
             SetBlipAsShortRange(placeBlips[placename].main, true)
