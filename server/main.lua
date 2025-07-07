@@ -62,7 +62,7 @@ lib.callback.register("nn_caption:whocaptured", function(source, job)
     end
 end)
 
-RegisterNetEvent("nn_caption:capture", function(job, place)
+RegisterNetEvent("nn_caption:capture", function(job, place, left)
     local source = source
     local playerName = GetPlayerName(source)
     
@@ -170,6 +170,27 @@ RegisterNetEvent("nn_caption:capture", function(job, place)
         TriggerClientEvent("nn_caption:startcapture", xPlayer.source, false, false, place)
     else
         debugprint("^2[ERROR] ^7NN Caption: ^1Nem adtál meg frakciót vagy helyet a capture eseményben!^0")
+    end
+end)
+
+RegisterNetEvent("nn_caption:cancelcapture", function()
+    local source = source
+    local playerName = GetPlayerName(source)
+    
+    if currentCaptures[source] then
+        currentCaptures[source] = nil
+        
+            Sendwebhook(
+                "Foglalás Megszakítva",
+                string.format(
+                    "**%s** (ID: %d) megszakította a foglalást (kilépett a területről)",
+                    playerName,
+                    source
+                ),
+                16776960 
+            )
+        
+        TriggerClientEvent("nn_caption:capturecancelled", source)
     end
 end)
 

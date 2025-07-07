@@ -131,9 +131,10 @@ function PlaceMarker(coords, color, job, place)
             onExit = function(self)
                 NN.CancelProgressbar()
                 captureing = false
+                TriggerServerEvent("nn_caption:cancelcapture")
             end,
             onEnter = function()
-
+                captureing = false
             end
         })
     elseif place then
@@ -187,9 +188,11 @@ function PlaceMarker(coords, color, job, place)
             end,
             onExit = function(self)
                 NN.CancelProgressbar()
+                captureing = false
+                TriggerServerEvent("nn_caption:cancelcapture")
             end,
             onEnter = function()
-
+                captureing = false
             end
         })
     end
@@ -197,7 +200,7 @@ end
 
 function Capture(job, place)
     if captureing then
-    TriggerServerEvent("nn_caption:capture", job, place)
+        TriggerServerEvent("nn_caption:capture", job, place)
     end
 end
 
